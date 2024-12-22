@@ -1,0 +1,1 @@
+* docker run --name tt_postgres -e POSTGRES_PASSWORD=Aa11111111 -v pgdata:/var/lib/postgresql/data -p 5432:5432 -d postgres
