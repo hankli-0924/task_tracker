@@ -1,0 +1,8 @@
+asgiref==3.8.1
+Django==5.1.4
+django-extensions==3.2.3
+packaging==24.2
+plotly==5.24.1
+psycopg2-binary==2.9.10
+sqlparse==0.5.3
+tenacity==9.0.0
