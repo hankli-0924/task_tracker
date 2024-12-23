@@ -8,6 +8,7 @@ class TeamMember(models.Model):
         ('backend', 'Backend Developer'),
         ('ui_ux', 'UI/UX Designer'),
         ('test', 'Tester'),
+        ('pm', 'Project manager or Production manager'),
     ]
 
     # 定义部门选择项
@@ -41,9 +42,9 @@ class TeamMember(models.Model):
 class Task(models.Model):
     TASK_NAME_MAX_LENGTH = 255
     PRIORITY_CHOICES = [
-        ('low', 'Low'),
-        ('medium', 'Medium'),
-        ('high', 'High'),
+        ('P2', 'P2'),
+        ('P1', 'P1'),
+        ('P0', 'P0'),
     ]
 
     task_name = models.CharField(
@@ -54,7 +55,7 @@ class Task(models.Model):
     priority = models.CharField(
         max_length=10,
         choices=PRIORITY_CHOICES,
-        default='medium',
+        default='P1',
         help_text="The priority level of the task."
     )
 
