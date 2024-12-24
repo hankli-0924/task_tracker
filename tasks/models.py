@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User  # Assuming you're using Django's built-in User model for team members
+from model_utils import FieldTracker
 
 
 class TeamMember(models.Model):
@@ -65,6 +66,8 @@ class Task(models.Model):
     # Many-to-Many relationship with TeamMember through the Assignment model
     team_members = models.ManyToManyField(TeamMember, through='Assignment')
 
+    tracker = FieldTracker(fields=['priority'])
+
     def __str__(self):
         return self.task_name
 
@@ -87,5 +90,6 @@ class Assignment(models.Model):
     actual_start_time = models.DateTimeField(null=True, blank=True)
     actual_end_time = models.DateTimeField(null=True, blank=True)
 
+    tracker = FieldTracker(fields=['effort_estimation','planned_start_time','actual_start_time'])
     def __str__(self):
         return f"{self.task.task_name} assigned to {self.team_member}"
