@@ -41,6 +41,26 @@ class TeamMember(models.Model):
         return self.user.get_full_name() or self.user.username
 
 
+class WorkCalendar(models.Model):
+    STATUS_CHOICES = [
+        ('leave', 'Leave (Not Working)'),
+        ('overtime', 'Overtime (Working)'),
+        # ('weekend', 'Weekend (Not Working)'),
+        # ('holiday', 'Public Holiday (Not Working)'),
+    ]
+
+    team_member = models.ForeignKey(TeamMember, on_delete=models.CASCADE, related_name='work_calendars')
+    date = models.DateField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+
+    class Meta:
+        # 确保一个团队成员在一天内只有一个状态
+        unique_together = ('team_member', 'date')
+
+    def __str__(self):
+        return f'{self.team_member} - {self.date}: {self.get_status_display()}'
+
+
 class Task(models.Model):
     TASK_NAME_MAX_LENGTH = 255
     PRIORITY_CHOICES = [
@@ -53,12 +73,49 @@ class Task(models.Model):
         max_length=TASK_NAME_MAX_LENGTH,
         help_text="The name of the task."
     )
+    description = models.TextField(default='', blank=True)
 
     priority = models.CharField(
         max_length=10,
         choices=PRIORITY_CHOICES,
         default='P1',
         help_text="The priority level of the task."
+    )
+
+    real_priority = models.IntegerField(
+        default=0,
+        help_text="The priority level of the task within its level."
+    )
+
+    level = models.IntegerField(
+        default=1,
+        help_text="The level of the task in the hierarchy."
+    )
+
+    parent_task = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='sub_tasks',
+        help_text="The parent task this task belongs to."
+    )
+
+    # And then modify the Task model to use this through model
+    predecessors = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        blank=True,
+        through='TaskPredecessor',
+        related_name='successors'
+    )
+
+    workload = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="The estimated workload of the task in person-days (only for leaf tasks)."
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -73,7 +130,24 @@ class Task(models.Model):
         return self.task_name
 
     class Meta:
-        ordering = ['-priority', 'created_at']
+        ordering = ['level', '-priority', 'created_at']
+
+    @property
+    def total_workload(self):
+        """Calculate the total workload including all sub-tasks."""
+        if self.sub_tasks.exists():
+            return sum(task.total_workload for task in self.sub_tasks.all())
+        else:
+            return self.workload or 0
+
+
+class TaskPredecessor(models.Model):
+    from_task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='task_predecessors')
+    to_task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='task_successors')
+    established_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('from_task', 'to_task')
 
 
 class Assignment(models.Model):
@@ -92,5 +166,6 @@ class Assignment(models.Model):
     actual_end_time = models.DateTimeField(null=True, blank=True)
 
     history = HistoricalRecords()
+
     def __str__(self):
         return f"{self.task.task_name} assigned to {self.team_member}"
