@@ -41,6 +41,15 @@ class TeamMember(models.Model):
         return self.user.get_full_name() or self.user.username
 
 
+class Holiday(models.Model):
+    """Model to store public holidays that apply to all team members."""
+    date = models.DateField(unique=True)
+    name = models.CharField(max_length=100, help_text="Name of the holiday")
+
+    def __str__(self):
+        return f'{self.name} on {self.date}'
+
+
 class WorkCalendar(models.Model):
     STATUS_CHOICES = [
         ('leave', 'Leave (Not Working)'),
@@ -53,12 +62,34 @@ class WorkCalendar(models.Model):
     date = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
 
+    hours_worked = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True,
+                                       help_text="Actual hours worked on this day")
+
     class Meta:
-        # 确保一个团队成员在一天内只有一个状态
         unique_together = ('team_member', 'date')
 
     def __str__(self):
-        return f'{self.team_member} - {self.date}: {self.get_status_display()}'
+        return f'{self.team_member} - {self.date}: {self.get_status_display()}, Hours Worked: {self.hours_worked or "N/A"}'
+
+    @staticmethod
+    def is_working_day(team_member, date):
+        """Check if the given date is a working day for the specified team member."""
+        # First check if there's an entry in WorkCalendar for this date and team member
+        try:
+            entry = WorkCalendar.objects.get(team_member=team_member, date=date)
+            # If it's marked as overtime, consider it a working day regardless of other conditions
+            return entry.status == 'overtime'
+        except WorkCalendar.DoesNotExist:
+            pass  # Proceed with further checks if no specific entry exists
+
+        # Check if the date is a weekend or a public holiday
+        if date.weekday() >= 5:  # Saturday (5) and Sunday (6)
+            return False
+        if Holiday.objects.filter(date=date).exists():
+            return False
+
+        # If there's no entry and it's not a weekend or holiday, assume it's a working day by default
+        return True
 
 
 class Task(models.Model):
