@@ -4,7 +4,6 @@ from django.contrib.auth.models import User  # Assuming you're using Django's bu
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
-from tasks.utils import get_today
 
 
 class TeamMember(models.Model):

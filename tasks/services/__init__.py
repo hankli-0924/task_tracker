@@ -1,0 +1,1 @@
+from .scheduling_service import recalculate_all_assignments_schedule
