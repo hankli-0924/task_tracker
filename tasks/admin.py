@@ -13,9 +13,15 @@ class AssignmentInline(admin.TabularInline):
 
 # Define a custom admin class for Task
 class TaskAdmin(SimpleHistoryAdmin):
-    list_display = ('task_name', 'priority', 'created_at', 'updated_at')
+    list_display = ('task_name',
+                    'priority',
+                    'created_at',
+                    'updated_at')
     search_fields = ('task_name',)
-    list_filter = ('priority', 'created_at', 'updated_at')
+    list_filter = (
+        'priority',
+        'created_at',
+        'updated_at')
     date_hierarchy = 'created_at'
     inlines = [AssignmentInline]
 

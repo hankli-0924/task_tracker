@@ -1,6 +1,10 @@
+from datetime import datetime, timedelta
 from django.db import models
 from django.contrib.auth.models import User  # Assuming you're using Django's built-in User model for team members
+from django.utils import timezone
 from simple_history.models import HistoricalRecords
+
+from tasks.utils import get_today
 
 
 class TeamMember(models.Model):
@@ -51,17 +55,20 @@ class Holiday(models.Model):
 
 
 class WorkCalendar(models.Model):
+    """Though this is named work calendar. Not all working days are stored in this model ,
+    only special days(working overtime or taking personal leave) are maintained in this table,
+    and the final actual working days are calculated based on special days maintained in this model for each individual."""
     STATUS_CHOICES = [
         ('leave', 'Leave (Not Working)'),
         ('overtime', 'Overtime (Working)'),
-        # ('weekend', 'Weekend (Not Working)'),
-        # ('holiday', 'Public Holiday (Not Working)'),
     ]
 
     team_member = models.ForeignKey(TeamMember, on_delete=models.CASCADE, related_name='work_calendars')
     date = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
 
+    '''This can be used for either working over time or for a regular working day , as 
+    any record in this table will be considered first'''
     hours_worked = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True,
                                        help_text="Actual hours worked on this day")
 
@@ -78,6 +85,7 @@ class WorkCalendar(models.Model):
         try:
             entry = WorkCalendar.objects.get(team_member=team_member, date=date)
             # If it's marked as overtime, consider it a working day regardless of other conditions
+            # return False is team member takes leave on that very day
             return entry.status == 'overtime'
         except WorkCalendar.DoesNotExist:
             pass  # Proceed with further checks if no specific entry exists
@@ -91,14 +99,29 @@ class WorkCalendar(models.Model):
         # If there's no entry and it's not a weekend or holiday, assume it's a working day by default
         return True
 
+    @classmethod
+    def get_next_available_workday(cls, team_member, start_date):
+        """Find the next available workday starting from the given date for the specified team member."""
+        date_to_check = start_date
+        while True:
+            if cls.is_working_day(team_member, date_to_check):
+                return timezone.make_aware(datetime.combine(date_to_check, datetime.min.time()))
+            date_to_check += timedelta(days=1)
+
 
 class Task(models.Model):
+    """Definition of task is from product point of view, actual task assignment is handled by model Assignment.
+    Sometimes the difference between Task and Assignment can be subtle, as one task can have multiple assignments.
+    Task can also have multiple sub-tasks.
+    So, when inserting data into Task ,please also think from product/function point of view, don't think too much
+    about the actual assignment of the task.
+    """
     TASK_NAME_MAX_LENGTH = 255
-    PRIORITY_CHOICES = [
-        ('P2', 'P2'),
-        ('P1', 'P1'),
-        ('P0', 'P0'),
-    ]
+    # PRIORITY_CHOICES = [
+    #     ('P2', 'P2'),
+    #     ('P1', 'P1'),
+    #     ('P0', 'P0'),
+    # ]
 
     task_name = models.CharField(
         max_length=TASK_NAME_MAX_LENGTH,
@@ -106,14 +129,7 @@ class Task(models.Model):
     )
     description = models.TextField(default='', blank=True)
 
-    priority = models.CharField(
-        max_length=10,
-        choices=PRIORITY_CHOICES,
-        default='P1',
-        help_text="The priority level of the task."
-    )
-
-    real_priority = models.IntegerField(
+    priority = models.IntegerField(
         default=0,
         help_text="The priority level of the task within its level."
     )
@@ -141,14 +157,6 @@ class Task(models.Model):
         related_name='successors'
     )
 
-    workload = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text="The estimated workload of the task in person-days (only for leaf tasks)."
-    )
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -161,15 +169,19 @@ class Task(models.Model):
         return self.task_name
 
     class Meta:
-        ordering = ['level', '-priority', 'created_at']
+        ordering = ['level',
+                    # 'priority',
+                    'created_at']
 
     @property
-    def total_workload(self):
-        """Calculate the total workload including all sub-tasks."""
+    def total_effort_estimation(self):
+        """Calculate the total effort estimation including all sub-tasks."""
         if self.sub_tasks.exists():
-            return sum(task.total_workload for task in self.sub_tasks.all())
+            # For parent tasks, sum up the effort estimations of all sub-tasks
+            return sum(task.total_effort_estimation for task in self.sub_tasks.all())
         else:
-            return self.workload or 0
+            # For leaf tasks, sum up the effort estimations from assignments
+            return sum(assignment.effort_estimation or 0 for assignment in self.assignments.all())
 
 
 class TaskPredecessor(models.Model):
@@ -183,7 +195,7 @@ class TaskPredecessor(models.Model):
 
 class Assignment(models.Model):
     """Intermediary model to manage assignments of team members to tasks."""
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='assignments')
     team_member = models.ForeignKey(TeamMember, on_delete=models.CASCADE)
     assigned_at = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, null=True)
@@ -200,3 +212,29 @@ class Assignment(models.Model):
 
     def __str__(self):
         return f"{self.task.task_name} assigned to {self.team_member}"
+
+    def recalculate_task_schedules(self):
+        current_date = get_today()
+
+        planned_start_time = WorkCalendar.get_next_available_workday(self.team_member, current_date)
+        planned_end_time = planned_start_time
+
+        if self.effort_estimation is not None:
+            working_hours_per_day = 8  # Assuming a standard 8-hour workday
+            total_hours_needed = self.effort_estimation
+
+            hours_counted = 0
+            while hours_counted < total_hours_needed:
+                if WorkCalendar.is_working_day(self.team_member, planned_end_time):
+                    hours_for_day = WorkCalendar.objects.filter(team_member=self.team_member,
+                                                                date=planned_end_time).first()
+                    hours_worked_today = hours_for_day.hours_worked if hours_for_day else working_hours_per_day
+                    hours_counted += min(hours_worked_today, total_hours_needed - hours_counted)
+                planned_end_time += timedelta(days=1)
+
+            while not WorkCalendar.is_working_day(self.team_member, planned_end_time):
+                planned_end_time += timedelta(days=1)
+
+            self.planned_start_time = planned_start_time
+            self.planned_end_time = planned_end_time
+            self.save()
