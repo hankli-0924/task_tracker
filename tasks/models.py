@@ -109,8 +109,6 @@ class WorkCalendar(models.Model):
             date_to_check += timedelta(days=1)
 
 
-
-
 class Task(models.Model):
     """Definition of task is from product point of view, actual task assignment is handled by model Assignment.
     Sometimes the difference between Task and Assignment can be subtle, as one task can have multiple assignments.
@@ -214,31 +212,3 @@ class Assignment(models.Model):
 
     def __str__(self):
         return f"{self.task.task_name} assigned to {self.team_member}"
-
-    def recalculate_assignment_schedule(self):
-        """Recalculate the start and end schedule for this assignment based on the team member's work calendar."""
-
-        current_date = get_today()
-
-        planned_start_time = WorkCalendar.get_next_available_workday(self.team_member, current_date)
-        planned_end_time = planned_start_time
-
-        if self.effort_estimation is not None:
-            working_hours_per_day = 8  # Assuming a standard 8-hour workday
-            total_hours_needed = self.effort_estimation
-
-            hours_counted = 0
-            while hours_counted < total_hours_needed:
-                if WorkCalendar.is_working_day(self.team_member, planned_end_time):
-                    hours_for_day = WorkCalendar.objects.filter(team_member=self.team_member,
-                                                                date=planned_end_time).first()
-                    hours_worked_today = hours_for_day.hours_worked if hours_for_day else working_hours_per_day
-                    hours_counted += min(hours_worked_today, total_hours_needed - hours_counted)
-                planned_end_time += timedelta(days=1)
-
-            while not WorkCalendar.is_working_day(self.team_member, planned_end_time):
-                planned_end_time += timedelta(days=1)
-
-            self.planned_start_time = planned_start_time
-            self.planned_end_time = planned_end_time
-            self.save()
