@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from django.db import models
 from django.contrib.auth.models import User  # Assuming you're using Django's built-in User model for team members
 from django.utils import timezone
@@ -105,8 +105,10 @@ class WorkCalendar(models.Model):
         date_to_check = start_date
         while True:
             if cls.is_working_day(team_member, date_to_check):
-                return timezone.make_aware(datetime.combine(date_to_check, datetime.min.time()))
+                return timezone.make_aware(datetime.combine(date_to_check, time.min))
             date_to_check += timedelta(days=1)
+
+
 
 
 class Task(models.Model):
@@ -213,7 +215,9 @@ class Assignment(models.Model):
     def __str__(self):
         return f"{self.task.task_name} assigned to {self.team_member}"
 
-    def recalculate_task_schedules(self):
+    def recalculate_assignment_schedule(self):
+        """Recalculate the start and end schedule for this assignment based on the team member's work calendar."""
+
         current_date = get_today()
 
         planned_start_time = WorkCalendar.get_next_available_workday(self.team_member, current_date)
