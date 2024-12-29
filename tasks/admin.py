@@ -38,7 +38,7 @@ class AssignmentAdmin(SimpleHistoryAdmin):
     list_display = (
     'task', 'team_member', 'planned_start_time', 'planned_end_time', 'actual_end_time', 'notes', 'assigned_at')
     search_fields = ('task__task_name', 'team_member__user__username')
-    list_filter = ('assigned_at',)
+    list_filter = ('assigned_at','team_member',)
     date_hierarchy = 'assigned_at'
 
 # Register the models with their respective admin classes
