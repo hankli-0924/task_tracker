@@ -4,8 +4,6 @@ from django.contrib.auth.models import User  # Assuming you're using Django's bu
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
-
-
 class TeamMember(models.Model):
     POSITION_CHOICES = [
         ('frontend', 'Frontend Developer'),
@@ -116,11 +114,6 @@ class Task(models.Model):
     about the actual assignment of the task.
     """
     TASK_NAME_MAX_LENGTH = 255
-    # PRIORITY_CHOICES = [
-    #     ('P2', 'P2'),
-    #     ('P1', 'P1'),
-    #     ('P0', 'P0'),
-    # ]
 
     task_name = models.CharField(
         max_length=TASK_NAME_MAX_LENGTH,
