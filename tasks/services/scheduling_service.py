@@ -43,30 +43,6 @@ class ScheduleService:
         return ordered_members
 
     @staticmethod
-    def reschedule_team_member(team_member):
-        """Reschedule all assignments for a specific team member considering dependency order."""
-        assignments = Assignment.objects.filter(team_member=team_member,
-                                                actual_start_time__isnull=True,
-                                                actual_end_time__isnull=True
-                                                ).select_related('task')
-
-        # Get all unique tasks assigned to this team member
-        tasks = set(assignment.task for assignment in assignments)
-
-        # Determine the dependency order of these tasks
-        try:
-            ordered_tasks = ScheduleService.get_dependency_order(tasks)
-        except ValueError as e:
-            logger.exception(f"Error scheduling due to cyclic dependencies for member {team_member}: {e}")
-            return
-
-        # Reschedule assignments in dependency order
-        for task in ordered_tasks:
-            task_assignments = [a for a in assignments if a.task == task]
-            for assignment in task_assignments:
-                ScheduleService.recalculate_assignment_schedule(assignment)
-
-    @staticmethod
     def get_dependency_order(tasks):
         """Determine the dependency order of tasks."""
         graph = defaultdict(list)
@@ -117,7 +93,7 @@ class ScheduleService:
         end_date = WorkCalendar.add_working_hours(
             assignment.team_member,
             start_date,
-            float(assignment.effort_estimation or 0) *8
+            float(assignment.effort_estimation or 0) * 8
         )
 
         # assignment.planned_start_time = start_date
@@ -125,3 +101,27 @@ class ScheduleService:
         # assignment.save()
         logger.info(
             f'Recalculated schedule for assignment {assignment}, estimation is {assignment.effort_estimation} new start_date is {start_date}, new end_date is {end_date}')
+
+    @staticmethod
+    def reschedule_team_member(team_member):
+        """Reschedule all assignments for a specific team member considering dependency order."""
+        assignments = Assignment.objects.filter(team_member=team_member,
+                                                actual_start_time__isnull=True,
+                                                actual_end_time__isnull=True
+                                                ).select_related('task')
+
+        # Get all unique tasks assigned to this team member
+        tasks = set(assignment.task for assignment in assignments)
+
+        # Determine the dependency order of these tasks
+        try:
+            ordered_tasks = ScheduleService.get_dependency_order(tasks)
+        except ValueError as e:
+            logger.exception(f"Error scheduling due to cyclic dependencies for member {team_member}: {e}")
+            return
+
+        # Reschedule assignments in dependency order
+        for task in ordered_tasks:
+            task_assignments = [a for a in assignments if a.task == task]
+            for assignment in task_assignments:
+                ScheduleService.recalculate_assignment_schedule(assignment)
