@@ -4,6 +4,7 @@ from django.contrib.auth.models import User  # Assuming you're using Django's bu
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
+
 class TeamMember(models.Model):
     POSITION_CHOICES = [
         ('frontend', 'Frontend Developer'),
