@@ -130,7 +130,7 @@ class WorkCalendar(models.Model):
         while accumulated_hours < hours_to_add:
             if cls.is_working_day(team_member, end_date.date()):
                 daily_hours = cls.get_daily_working_hours(team_member, end_date.date())
-                remaining_hours = hours_to_add - accumulated_hours
+                remaining_hours = hours_to_add - float(accumulated_hours)
                 if daily_hours >= remaining_hours:
                     end_date += timedelta(hours=remaining_hours)
                     break
@@ -234,7 +234,7 @@ class Assignment(models.Model):
 
     # Fields for Gantt chart data
     effort_estimation = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True,
-                                            help_text="Estimated effort in hours")
+                                            help_text="Estimated effort in man days")
     planned_start_time = models.DateTimeField(null=True, blank=True)
     planned_end_time = models.DateTimeField(null=True, blank=True)
     actual_start_time = models.DateTimeField(null=True, blank=True)

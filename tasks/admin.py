@@ -41,7 +41,7 @@ class TeamMemberAdmin(SimpleHistoryAdmin):
 # Define a custom admin class for Assignment
 class AssignmentAdmin(SimpleHistoryAdmin):
     list_display = (
-        'task', 'team_member', 'planned_start_time', 'planned_end_time', 'actual_end_time', 'notes', 'assigned_at')
+        'task', 'team_member','effort_estimation', 'planned_start_time', 'planned_end_time', 'actual_end_time', 'notes', 'assigned_at')
     search_fields = ('task__task_name', 'team_member__user__username')
     list_filter = ('assigned_at', 'team_member', 'task__level', 'task__priority')
     date_hierarchy = 'assigned_at'
