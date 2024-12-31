@@ -63,7 +63,6 @@ class WorkCalendarAdmin(SimpleHistoryAdmin):
 
 
 # Register the models with their respective admin classes
-# Register the models with their respective admin classes
 admin.site.register(TeamMember, TeamMemberAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(Assignment, AssignmentAdmin)
