@@ -76,25 +76,18 @@ class WorkCalendar(models.Model):
     def __str__(self):
         return f'{self.team_member} - {self.date}: {self.get_status_display()}, Hours Worked: {self.hours_worked or "N/A"}'
 
-    @staticmethod
-    def is_working_day(team_member, date):
+    @classmethod
+    def is_working_day(cls, team_member, date):
         """Check if the given date is a working day for the specified team member."""
-        # First check if there's an entry in WorkCalendar for this date and team member
         try:
-            entry = WorkCalendar.objects.get(team_member=team_member, date=date)
-            # If it's marked as overtime, consider it a working day regardless of other conditions
-            # return False is team member takes leave on that very day
+            entry = cls.objects.get(team_member=team_member, date=date)
             return entry.status == 'overtime'
-        except WorkCalendar.DoesNotExist:
+        except cls.DoesNotExist:
             pass  # Proceed with further checks if no specific entry exists
 
-        # Check if the date is a weekend or a public holiday
-        if date.weekday() >= 5:  # Saturday (5) and Sunday (6)
-            return False
-        if Holiday.objects.filter(date=date).exists():
+        if date.weekday() >= 5 or Holiday.objects.filter(date=date).exists():
             return False
 
-        # If there's no entry and it's not a weekend or holiday, assume it's a working day by default
         return True
 
     @classmethod
@@ -105,6 +98,52 @@ class WorkCalendar(models.Model):
             if cls.is_working_day(team_member, date_to_check):
                 return timezone.make_aware(datetime.combine(date_to_check, time.min))
             date_to_check += timedelta(days=1)
+
+    @classmethod
+    def get_daily_working_hours(cls, team_member, date):
+        """Get the number of working hours on a given date for the specified team member."""
+        try:
+            entry = cls.objects.get(team_member=team_member, date=date)
+            return entry.hours_worked or 8  # Assuming 8 hours as the default working day
+        except cls.DoesNotExist:
+            return 8  # Default working hours if no special entry exists
+
+    @classmethod
+    def get_end_of_working_day(cls, team_member, date):
+        """Get the end of the working day for a given date for the specified team member."""
+        try:
+            entry = cls.objects.get(team_member=team_member, date=date)
+            if entry.status == 'overtime':
+                return timezone.make_aware(datetime.combine(date, time(hour=23, minute=59)))
+            else:
+                return timezone.make_aware(
+                    datetime.combine(date, time(hour=17, minute=0)))  # Assuming standard end time
+        except cls.DoesNotExist:
+            return timezone.make_aware(datetime.combine(date, time(hour=17, minute=0)))  # Standard end time by default
+
+    @classmethod
+    def add_working_hours(cls, team_member, start_date, hours_to_add):
+        """Add working hours to a date using the given team member's calendar."""
+        end_date = start_date
+        accumulated_hours = 0
+
+        while accumulated_hours < hours_to_add:
+            if cls.is_working_day(team_member, end_date.date()):
+                daily_hours = cls.get_daily_working_hours(team_member, end_date.date())
+                remaining_hours = hours_to_add - accumulated_hours
+                if daily_hours >= remaining_hours:
+                    end_date += timedelta(hours=remaining_hours)
+                    break
+                else:
+                    accumulated_hours += daily_hours
+                    end_date += timedelta(days=1)
+            else:
+                end_date += timedelta(days=1)
+
+        # Ensure end_date is at the end of the working day
+        end_date = cls.get_end_of_working_day(team_member, end_date.date())
+
+        return end_date
 
 
 class Task(models.Model):

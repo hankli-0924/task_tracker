@@ -1,64 +1,123 @@
-from tasks.models import Assignment, WorkCalendar
-from tasks.utils import get_today
-from datetime import timedelta
-from django.db.models import Q
+import logging
+
+from django.utils import timezone
+from collections import deque, defaultdict
+from tasks.models import Assignment, TaskPredecessor, WorkCalendar
+
+logger = logging.getLogger('tasks')  # 使用特定的应用程序日志记录器
 
 
-def recalculate_all_assignments_schedule(team_member):
-    """Recalculate the schedules for all assignments of a team member without considering conflicts."""
+class ScheduleService:
+    @staticmethod
+    def get_team_member_dependency_order(assignments):
+        """Determine the dependency order of team members based on task dependencies."""
+        task_to_member = {assignment.task: assignment.team_member for assignment in assignments}
+        graph = defaultdict(list)
+        in_degree = defaultdict(int)
 
-    # Fetch all assignments for the team member, ordered by task level and priority
-    assignments = Assignment.objects.filter(
-        team_member=team_member
-    ).select_related('task').order_by('task__level', 'task__priority', 'task__created_at')
+        for predecessor in TaskPredecessor.objects.filter(
+                from_task__in=task_to_member.keys(),
+                to_task__in=task_to_member.keys()
+        ):
+            from_member = task_to_member.get(predecessor.from_task)
+            to_member = task_to_member.get(predecessor.to_task)
 
-    current_date = get_today()
+            if from_member != to_member:
+                graph[from_member].append(to_member)
+                in_degree[to_member] += 1
 
-    for assignment in assignments:
-        if assignment.effort_estimation is not None:
-            working_hours_per_day = 8  # Assuming a standard 8-hour workday
-            total_hours_needed = assignment.effort_estimation
-            hours_counted = 0
+        queue = deque([member for member in set(task_to_member.values()) if in_degree[member] == 0])
+        ordered_members = []
 
-            # Reset planned start time to the next available workday for each assignment
-            planned_start_time = WorkCalendar.get_next_available_workday(team_member, current_date)
+        while queue:
+            current_member = queue.popleft()
+            ordered_members.append(current_member)
+            for next_member in graph[current_member]:
+                in_degree[next_member] -= 1
+                if in_degree[next_member] == 0:
+                    queue.append(next_member)
 
-            # Initialize planned_end_time with planned_start_time
-            planned_end_time = planned_start_time
+        if len(ordered_members) < len(set(task_to_member.values())):
+            raise ValueError("Cycle detected or not all team members can be scheduled due to dependencies")
 
-            while hours_counted < total_hours_needed:
-                if WorkCalendar.is_working_day(team_member, planned_end_time.date()):
-                    # Only consider days marked as overtime or default working day with no leave
-                    daily_work_entry = (
-                        WorkCalendar.objects
-                        .filter(
-                            Q(team_member=team_member) &
-                            Q(date=planned_end_time.date()) &
-                            Q(status='overtime')
-                        )
-                        .first()
-                    )
+        return ordered_members
 
-                    if daily_work_entry and daily_work_entry.hours_worked:
-                        # If there's an overtime entry, use its hours_worked value
-                        hours_worked_today = daily_work_entry.hours_worked
-                    else:
-                        # Otherwise, assume a standard working day with 8 hours
-                        hours_worked_today = working_hours_per_day
+    @staticmethod
+    def reschedule_team_member(team_member):
+        """Reschedule all assignments for a specific team member considering dependency order."""
+        assignments = Assignment.objects.filter(team_member=team_member).select_related('task')
 
-                    hours_to_add = min(hours_worked_today, total_hours_needed - hours_counted)
-                    hours_counted += hours_to_add
+        # Get all unique tasks assigned to this team member
+        tasks = set(assignment.task for assignment in assignments)
 
-                    # Increment planned_end_time only after adding hours for the day
-                    planned_end_time += timedelta(days=1)
+        # Determine the dependency order of these tasks
+        try:
+            ordered_tasks = ScheduleService.get_dependency_order(tasks)
+        except ValueError as e:
+            logger.exception(f"Error scheduling due to cyclic dependencies for member {team_member}: {e}")
+            return
 
-            # Ensure the end time is a valid working day
-            while not WorkCalendar.is_working_day(team_member, planned_end_time.date()):
-                planned_end_time += timedelta(days=1)
+        # Reschedule assignments in dependency order
+        for task in ordered_tasks:
+            task_assignments = [a for a in assignments if a.task == task]
+            for assignment in task_assignments:
+                ScheduleService.recalculate_assignment_schedule(assignment)
 
-            assignment.planned_start_time = planned_start_time
-            assignment.planned_end_time = planned_end_time
-            assignment.save()
+    @staticmethod
+    def get_dependency_order(tasks):
+        """Determine the dependency order of tasks."""
+        graph = defaultdict(list)
+        in_degree = {task: 0 for task in tasks}
 
-            # Move planned_end_time forward for the next assignment
-            current_date = planned_end_time  # Update current_date for the next iteration
+        for predecessor in TaskPredecessor.objects.filter(to_task__in=tasks):
+            graph[predecessor.from_task].append(predecessor.to_task)
+            in_degree[predecessor.to_task] += 1
+
+        queue = deque([task for task in tasks if in_degree[task] == 0])
+        ordered_tasks = []
+
+        while queue:
+            current_task = queue.popleft()
+            ordered_tasks.append(current_task)
+
+            for next_task in graph[current_task]:
+                in_degree[next_task] -= 1
+                if in_degree[next_task] == 0:
+                    queue.append(next_task)
+
+        if len(ordered_tasks) != len(tasks):
+            raise ValueError("Cycle detected in task dependencies")
+
+        return ordered_tasks
+
+    @staticmethod
+    def recalculate_assignment_schedule(assignment):
+        """Recalculate the schedule for a single assignment considering its dependencies and working calendar."""
+        task = assignment.task
+        predecessor_tasks = task.predecessors.all()
+        latest_predecessor_end_time = None
+
+        if predecessor_tasks.exists():
+            latest_predecessor_end_time = max(
+                (predecessor_task.actual_end_time or predecessor_task.planned_end_time
+                 for predecessor_task in predecessor_tasks),
+                default=None
+            )
+
+        # Use the team member's work calendar to find the next available workday
+        start_date = WorkCalendar.get_next_available_workday(
+            assignment.team_member,
+            latest_predecessor_end_time.date() if latest_predecessor_end_time else timezone.now().date()
+        )
+
+        # Calculate the planned end time using the work calendar
+        end_date = WorkCalendar.add_working_hours(
+            assignment.team_member,
+            start_date,
+            float(assignment.effort_estimation or 0)
+        )
+
+        assignment.planned_start_time = start_date
+        assignment.planned_end_time = end_date
+        assignment.save()
+        logger.info(f'Recalculated schedule for assignment {assignment}')
