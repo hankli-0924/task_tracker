@@ -1,5 +1,6 @@
 import logging
 
+from django.db.models.aggregates import Max
 from django.utils import timezone
 from collections import deque, defaultdict
 from tasks.models import Assignment, TaskPredecessor, WorkCalendar
@@ -70,18 +71,13 @@ class ScheduleService:
         return ordered_tasks
 
     @staticmethod
-    def recalculate_assignment_schedule(assignment):
+    def recalculate_assignment_schedule(assignment:Assignment):
         """Recalculate the schedule for a single assignment considering its dependencies and working calendar."""
-        task = assignment.task
-        predecessor_tasks = task.predecessors.all()
-        latest_predecessor_end_time = None
+        max_planned_end_time = Assignment.objects.filter(team_member=assignment.team_member).aggregate(
+            Max('planned_end_time'))
 
-        if predecessor_tasks.exists():
-            latest_predecessor_end_time = max(
-                (predecessor_task.actual_end_time or predecessor_task.planned_end_time
-                 for predecessor_task in predecessor_tasks),
-                default=None
-            )
+        # To get the actual value:
+        latest_predecessor_end_time = max_planned_end_time['planned_end_time__max']
 
         # Use the team member's work calendar to find the next available workday
         start_date = WorkCalendar.get_next_available_workday(
@@ -96,9 +92,9 @@ class ScheduleService:
             float(assignment.effort_estimation or 0) * 8
         )
 
-        # assignment.planned_start_time = start_date
-        # assignment.planned_end_time = end_date
-        # assignment.save()
+        assignment.planned_start_time = start_date
+        assignment.planned_end_time = end_date
+        assignment.save()
         logger.info(
             f'Recalculated schedule for assignment {assignment}, estimation is {assignment.effort_estimation} new start_date is {start_date}, new end_date is {end_date}')
 
