@@ -239,6 +239,7 @@ class Assignment(models.Model):
     planned_end_time = models.DateTimeField(null=True, blank=True)
     actual_start_time = models.DateTimeField(null=True, blank=True)
     actual_end_time = models.DateTimeField(null=True, blank=True)
+    need_update = models.BooleanField(default=False, help_text='Need update?')
 
     history = HistoricalRecords()
 

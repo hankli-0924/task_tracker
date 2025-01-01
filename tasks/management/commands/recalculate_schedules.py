@@ -18,7 +18,8 @@ class Command(BaseCommand):
             # Get all assignments and determine the dependency order of team members
         assignments = Assignment.objects.select_related('task', 'team_member').filter(
             actual_start_time__isnull=True,
-            actual_end_time__isnull=True)
+            actual_end_time__isnull=True,
+            need_update=True)
         ordered_members = ScheduleService.get_team_member_dependency_order(assignments)
 
         # Reschedule each team member in dependency order

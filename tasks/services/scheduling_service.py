@@ -107,7 +107,8 @@ class ScheduleService:
         """Reschedule all assignments for a specific team member considering dependency order."""
         assignments = Assignment.objects.filter(team_member=team_member,
                                                 actual_start_time__isnull=True,
-                                                actual_end_time__isnull=True
+                                                actual_end_time__isnull=True,
+                                                need_update=True
                                                 ).select_related('task')
 
         # Get all unique tasks assigned to this team member
