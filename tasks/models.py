@@ -94,9 +94,10 @@ class WorkCalendar(models.Model):
     def get_next_available_workday(cls, team_member, start_date):
         """Find the next available workday starting from the given date for the specified team member."""
         date_to_check = start_date
+        work_start_time = time(9, 0, 0)  # 工作开始时间为上午9:00
         while True:
             if cls.is_working_day(team_member, date_to_check):
-                return timezone.make_aware(datetime.combine(date_to_check, time.min))
+                return timezone.make_aware(datetime.combine(date_to_check, work_start_time))
             date_to_check += timedelta(days=1)
 
     @classmethod
