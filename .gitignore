@@ -2,3 +2,5 @@
 *.pyc
 logs/
 .venv
+.ipynb_checkpoints/
+Local.ipynb
