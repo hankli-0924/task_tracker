@@ -19,6 +19,17 @@ select content                                                                  
        to_date("Creation Time", 'yyyy-mm-dd')                                   as creation_time,
        extract(day from now() -
                         to_timestamp("Creation Time", 'yyyy-mm-dd hh24:mi:ss')) as days_since_creation
-from all_veriii_defects;
--- where "Workflow Status" in ('Pending[待认领]', 'Working On It[工作进行中]')
+from all_veriii_defects
+where "Workflow Status" not in ('Suspended[暂停]', 'Discarded[丢弃]','To Be Developed[待开发]','To Be Discussed(待讨论）');
 -- order by priority_no, creation_time
+
+--
+--
+-- Suspended[暂停]
+-- Discarded[丢弃]
+-- To Be Developed[待开发]
+-- 待部署生产环境
+-- Pending[待认领]
+-- Verified(生产问题则代表已发版)
+-- To Be Discussed(待讨论）
+-- Working On It[工作进行中]
