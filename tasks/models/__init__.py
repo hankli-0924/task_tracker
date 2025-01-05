@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User  # Assuming you're using Django's built-in User model for team members
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
-
+from .veriii_defects import VeriiiDefects
 
 class TeamMember(models.Model):
     POSITION_CHOICES = [

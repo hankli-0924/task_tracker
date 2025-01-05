@@ -1,7 +1,7 @@
 from django.contrib import admin
 from simple_history.admin import SimpleHistoryAdmin
 
-from .models import TeamMember, Task, Assignment, TaskPredecessor, Holiday, WorkCalendar
+from .models import TeamMember, Task, Assignment, TaskPredecessor, Holiday, WorkCalendar, VeriiiDefects
 
 
 # Define an inline admin class for Assignment
@@ -24,6 +24,7 @@ class TaskAdmin(SimpleHistoryAdmin):
     list_filter = ('level', 'priority', 'created_at', 'updated_at')
     date_hierarchy = 'created_at'
     inlines = [AssignmentInline, TaskPredecessorInline]
+
     # filter_horizontal = ('predecessors',)  # 更方便地选择前置任务
 
     def get_queryset(self, request):
@@ -41,9 +42,10 @@ class TeamMemberAdmin(SimpleHistoryAdmin):
 # Define a custom admin class for Assignment
 class AssignmentAdmin(SimpleHistoryAdmin):
     list_display = (
-        'task', 'team_member','effort_estimation', 'planned_start_time', 'planned_end_time', 'actual_start_time','actual_end_time', 'notes', 'assigned_at')
+        'task', 'team_member', 'effort_estimation', 'planned_start_time', 'planned_end_time', 'actual_start_time',
+        'actual_end_time', 'notes', 'assigned_at')
     search_fields = ('task__task_name', 'team_member__user__username')
-    list_filter = ('planned_end_time', 'team_member', 'task__level', 'task__priority','task__task_name','need_update')
+    list_filter = ('planned_end_time', 'team_member', 'task__level', 'task__priority', 'task__task_name', 'need_update')
     date_hierarchy = 'planned_end_time'
 
 
@@ -60,6 +62,17 @@ class WorkCalendarAdmin(SimpleHistoryAdmin):
     list_filter = ('status', 'team_member__department', 'team_member__position')
     date_hierarchy = 'date'
     search_fields = ('team_member__user__username',)
+
+
+@admin.register(VeriiiDefects)
+class VeriiiDefectsAdmin(admin.ModelAdmin):
+    list_display = (
+    'issue_description', 'owner', 'type', 'sys_name', 'module_name', 'priority', 'workflow_status',
+    'creation_time', 'days_since_creation')
+    list_filter = ('workflow_status', 'priority', 'creation_time')  # Add fields you want to filter by
+    search_fields = ('issue_description', 'owner', 'sys_name', 'module_name')  # Add fields you want to be searchable
+    date_hierarchy = 'creation_time'  # Optional: adds date-based drill-down navigation
+    ordering = ('-creation_time',)  # Sorts records when they appear in the admin
 
 
 # Register the models with their respective admin classes

@@ -8,7 +8,7 @@ select content                                                                  
 --        "Due Date",
        问题类别                                                                                            as type,
        系统名                                                                                              as sys_name,
-       模块                                                                                                as moudle_name,
+       模块                                                                                                as module_name,
        "Priority"                                                                                          as priority,
        case "Priority"
            when '非常紧急' then 1
