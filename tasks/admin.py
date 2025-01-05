@@ -1,7 +1,8 @@
+from datetime import timedelta
+
 from django.contrib import admin
 from simple_history.admin import SimpleHistoryAdmin
-
-from .models import TeamMember, Task, Assignment, TaskPredecessor, Holiday, WorkCalendar, VeriiiDefects
+from .models import TeamMember, Task, Assignment, TaskPredecessor, Holiday, WorkCalendar, VeriiiDefects, VeriiiTasks
 
 
 # Define an inline admin class for Assignment
@@ -46,7 +47,7 @@ class AssignmentAdmin(SimpleHistoryAdmin):
         'actual_end_time', 'notes', 'assigned_at')
     search_fields = ('task__task_name', 'team_member__user__username')
     list_filter = ('planned_end_time', 'team_member', 'task__level', 'task__priority', 'task__task_name', 'need_update')
-    date_hierarchy = 'planned_end_time'
+    date_hierarchy = 'assigned_at'
 
 
 # Define a custom admin class for Holiday
@@ -67,12 +68,31 @@ class WorkCalendarAdmin(SimpleHistoryAdmin):
 @admin.register(VeriiiDefects)
 class VeriiiDefectsAdmin(admin.ModelAdmin):
     list_display = (
-    'issue_description', 'owner', 'type', 'sys_name', 'module_name', 'priority', 'workflow_status',
-    'creation_time', 'days_since_creation')
+        'issue_description', 'owner', 'type', 'sys_name', 'module_name', 'priority', 'workflow_status',
+        'creation_time', 'days_since_creation')
     list_filter = ('workflow_status', 'priority', 'creation_time')  # Add fields you want to filter by
     search_fields = ('issue_description', 'owner', 'sys_name', 'module_name')  # Add fields you want to be searchable
     date_hierarchy = 'creation_time'  # Optional: adds date-based drill-down navigation
-    ordering = ('-creation_time',)  # Sorts records when they appear in the admin
+    ordering = ('priority_no', 'creation_time',)  # Sorts records when they appear in the admin
+
+
+@admin.register(VeriiiTasks)
+class VeriiiTasksAdmin(admin.ModelAdmin):
+    list_display = (
+        'task_name',
+        'username',
+        'priority',
+        'planed_start_time',
+        'planed_end_time',
+        'planned_verification_time',
+        'effort_estimation_in_man_days',
+        'actual_start_time',
+        'actual_end_time'
+    )
+    list_filter = ('username', 'priority')  # Keep other filters as needed
+    search_fields = ('task_name', 'username')  # Add fields you want to be searchable
+    date_hierarchy = 'planed_start_time' # Adds date-based drill-down navigation
+    ordering = ('-planed_start_time',)  # Sorts records when they appear in the admin
 
 
 # Register the models with their respective admin classes
