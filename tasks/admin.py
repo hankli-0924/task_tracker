@@ -78,21 +78,35 @@ class VeriiiDefectsAdmin(admin.ModelAdmin):
 
 @admin.register(VeriiiTasks)
 class VeriiiTasksAdmin(admin.ModelAdmin):
+    # 自定义管理界面显示哪些字段
     list_display = (
         'task_name',
-        'username',
         'priority',
+        'username',
         'planed_start_time',
         'planed_end_time',
-        'planned_verification_time',
-        'effort_estimation_in_man_days',
-        'actual_start_time',
-        'actual_end_time'
-    )
-    list_filter = ('username', 'priority')  # Keep other filters as needed
-    search_fields = ('task_name', 'username')  # Add fields you want to be searchable
-    date_hierarchy = 'planed_start_time' # Adds date-based drill-down navigation
-    ordering = ('-planed_start_time',)  # Sorts records when they appear in the admin
+        'effort_estimation_in_man_days')
+
+    # 添加搜索框，指定可搜索的字段
+    search_fields = ['task_name', 'username']
+
+    # 添加过滤器
+    list_filter = ('priority', 'planed_start_time', 'planed_end_time')
+
+    # 指定默认排序字段，负号表示降序
+    ordering = ('-planed_start_time',)
+
+    # 如果有外键字段，可以使用 raw_id_fields 提高编辑效率
+    # raw_id_fields = ('some_foreign_key_field',)
+
+    # 如果有大量数据，分页显示
+    list_per_page = 20
+
+    # 只读字段
+    readonly_fields = ('planned_verification_time',)
+
+    # 添加 date_hierarchy 支持
+    # date_hierarchy = 'planed_end_time'
 
 
 # Register the models with their respective admin classes
