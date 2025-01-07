@@ -170,9 +170,9 @@ class VeriiiTasksAdmin(admin.ModelAdmin):
 
 
 
-class LastMonthFilter(admin.SimpleListFilter):
-    title = 'planed end time'
-    parameter_name = 'planed_end_time'
+class CompleteTimeLastMonthFilter(admin.SimpleListFilter):
+    title = 'complete time'
+    parameter_name = 'complete_time'
 
     def lookups(self, request, model_admin):
         """
@@ -204,34 +204,34 @@ class LastMonthFilter(admin.SimpleListFilter):
             this_month_start = date(now.year, now.month, 1)
             last_month_end = this_month_start - timedelta(days=1)
             last_month_start = date(last_month_end.year, last_month_end.month, 1)
-            return queryset.filter(planed_end_time__gte=last_month_start, planed_end_time__lte=last_month_end)
+            return queryset.filter(complete_time__gte=last_month_start, complete_time__lte=last_month_end)
         elif self.value() == 'this_month':
             this_month_start = date(now.year, now.month, 1)
             next_month = this_month_start.replace(day=28) + timedelta(days=4)  # this will never fail
             this_month_end = next_month - timedelta(days=next_month.day)
-            return queryset.filter(planed_end_time__gte=this_month_start, planed_end_time__lte=this_month_end)
+            return queryset.filter(complete_time__gte=this_month_start, complete_time__lte=this_month_end)
         elif self.value() == 'this_year':
             this_year_start = date(now.year, 1, 1)
             this_year_end = date(now.year, 12, 31)
-            return queryset.filter(planed_end_time__gte=this_year_start, planed_end_time__lte=this_year_end)
+            return queryset.filter(complete_time__gte=this_year_start, complete_time__lte=this_year_end)
         elif self.value() == 'past_7_days':
             seven_days_ago = now - timedelta(days=7)
-            return queryset.filter(planed_end_time__gte=seven_days_ago)
+            return queryset.filter(complete_time__gte=seven_days_ago)
         elif self.value() == 'today':
             today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             today_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-            return queryset.filter(planed_end_time__gte=today_start, planed_end_time__lte=today_end)
+            return queryset.filter(complete_time__gte=today_start, complete_time__lte=today_end)
         elif self.value() == 'any_date':
-            return queryset.exclude(planed_end_time__isnull=True)
+            return queryset.exclude(complete_time__isnull=True)
         elif self.value() == 'no_date':
-            return queryset.filter(planed_end_time__isnull=True)
+            return queryset.filter(complete_time__isnull=True)
 
 
 @admin.register(AllCompletionWork)
 class AllCompletionWorkAdmin(admin.ModelAdmin):
     list_display = ('task_type', 'issue_description', 'owner', 'complete_time', 'days_spent')
     search_fields = ('task_type', 'issue_description', 'owner')
-    list_filter = ('complete_time', 'task_type','owner')
+    list_filter = ('task_type', 'owner', CompleteTimeLastMonthFilter)
     date_hierarchy = 'complete_time'
     ordering = ('-complete_time',)
 
