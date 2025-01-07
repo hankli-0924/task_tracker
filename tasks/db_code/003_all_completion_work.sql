@@ -1,5 +1,6 @@
+drop view if exists all_completion_work CASCADE;
 drop view if exists all_completion_tasks CASCADE;
-create view all_completion_tasks as
+create view all_completion_work as
 select 'issues'                                                    as task_type,
        issue_description,
        case owner when '牧野' then '李治文' else owner end         as owner,
