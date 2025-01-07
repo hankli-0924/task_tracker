@@ -1,4 +1,4 @@
-drop view if exists veriii_defects;
+drop view if exists veriii_defects CASCADE;
 create view veriii_defects as
 select content                                                                  as issue_description,
        "Executor"                                                               as owner,
@@ -19,9 +19,10 @@ select content                                                                  
        to_date("Creation Time", 'yyyy-mm-dd')                                   as creation_time,
        extract(day from now() -
                         to_timestamp("Creation Time", 'yyyy-mm-dd hh24:mi:ss')) as days_since_creation,
-   to_date("complete time", 'yyyy-mm-dd')    as complete_time
+       to_date("complete time", 'yyyy-mm-dd')                                   as complete_time
 from all_veriii_defects
-where "Workflow Status" not in ('Suspended[暂停]', 'Discarded[丢弃]','To Be Developed[待开发]','To Be Discussed(待讨论）');
+where "Workflow Status" not in
+      ('Suspended[暂停]', 'Discarded[丢弃]', 'To Be Developed[待开发]', 'To Be Discussed(待讨论）');
 -- order by priority_no, creation_time
 
 --
