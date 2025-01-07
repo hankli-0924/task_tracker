@@ -27,7 +27,7 @@ class Command(BaseCommand):
             # self.stdout.write(f'{sql_dir}')
 
             if os.path.exists(sql_dir):
-                for file_name in os.listdir(sql_dir):
+                for file_name in sorted(os.listdir(sql_dir)):
                     if file_name.endswith('.sql'):
                         file_path = os.path.join(sql_dir, file_name)
                         with open(file_path, 'r') as f:
