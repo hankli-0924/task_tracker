@@ -5,6 +5,7 @@ from django.utils import timezone
 from simple_history.models import HistoricalRecords
 from .veriii_defects import VeriiiDefects
 from .veriiii_tasks import VeriiiTasks
+from .all_completion_work import AllCompletionWork
 class TeamMember(models.Model):
     POSITION_CHOICES = [
         ('frontend', 'Frontend Developer'),
