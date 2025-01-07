@@ -1,5 +1,4 @@
 drop view if exists all_completion_work CASCADE;
-drop view if exists all_completion_tasks CASCADE;
 create view all_completion_work as
 select 'issues'                                                    as task_type,
        issue_description,
