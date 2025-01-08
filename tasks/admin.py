@@ -128,7 +128,7 @@ class VeriiiDefectsAdmin(admin.ModelAdmin):
     list_display = (
         'issue_description', 'owner', 'type', 'sys_name', 'module_name', 'priority','priority_no', 'workflow_status',
         'creation_time', 'days_since_creation')
-    list_filter = ('owner', 'workflow_status', 'priority', 'creation_time')  # Add fields you want to filter by
+    list_filter = ('owner', 'workflow_status','type','sys_name','module_name', 'priority', 'creation_time')  # Add fields you want to filter by
     search_fields = ('issue_description', 'owner', 'sys_name', 'module_name')  # Add fields you want to be searchable
     date_hierarchy = 'creation_time'  # Optional: adds date-based drill-down navigation
     ordering = ('priority_no', 'creation_time',)  # Sorts records when they appear in the admin

@@ -15,7 +15,9 @@ select content                                                                  
            when '普通' then 3
            when '较低'
                then 4 end                                                       as priority_no,
-       "Workflow Status"                                                        as workflow_status,
+       case
+           when "Workflow Status" in ('待部署生产环境', 'Verified(生产问题则代表已发版)') then 'Closed'
+           else 'WIP' end                                                       as workflow_status,
        to_date("Creation Time", 'yyyy-mm-dd')                                   as creation_time,
        extract(day from now() -
                         to_timestamp("Creation Time", 'yyyy-mm-dd hh24:mi:ss')) as days_since_creation,
