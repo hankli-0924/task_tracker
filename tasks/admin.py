@@ -104,7 +104,8 @@ class AssignmentAdmin(SimpleHistoryAdmin):
         'task', 'team_member', 'effort_estimation', 'planned_start_time', 'planned_end_time','completed', 'actual_start_time',
         'actual_end_time', 'notes', 'assigned_at')
     search_fields = ('task__task_name', 'team_member__user__username')
-    list_filter = ('planned_end_time', 'team_member', 'task__level', 'task__priority', 'task__task_name', 'need_update')
+    list_filter = ('planned_end_time', 'team_member', 'task__level', 'task__priority', 'task__task_name', 'need_update',
+                   'actual_start_time')
     date_hierarchy = 'assigned_at'
 
 
