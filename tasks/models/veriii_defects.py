@@ -10,7 +10,7 @@ class VeriiiDefects(models.Model):
     workflow_status = models.TextField(blank=True, null=True)
     creation_time = models.DateField(blank=True, null=True)
     days_since_creation = models.IntegerField( blank=True, null=True)
-    complete_time = models.DateTimeField(blank=True, null=True)
+    complete_time = models.DateField(blank=True, null=True)
 
     class Meta:
         managed = False
