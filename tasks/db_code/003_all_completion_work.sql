@@ -7,7 +7,7 @@ select 'issues'                                                    as task_type,
        veriii_defects.complete_time - veriii_defects.creation_time as days_spent
 from veriii_defects
 where veriii_defects.complete_time is not null
-
+and workflow_status='Closed'
 union all
 
 select 'tasks', task_name, username, veriii_tasks.actual_end_time, veriii_tasks.effort_estimation_in_man_days
