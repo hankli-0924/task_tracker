@@ -245,5 +245,9 @@ class Assignment(models.Model):
 
     history = HistoricalRecords()
 
+    @property
+    def completed(self):
+        return self.planned_end_time is not None
+
     def __str__(self):
         return f"{self.task.task_name} assigned to {self.team_member}"
