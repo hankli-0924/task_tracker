@@ -25,6 +25,7 @@ class Command(BaseCommand):
         # Reschedule each team member in dependency order
         for team_member in ordered_members:
             ScheduleService.reschedule_team_member(team_member)
+            logger.info(self.style.SUCCESS(f'reschedule_team_member for {team_member} successfully.'))
 
         logger.info(self.style.SUCCESS('Schedule recalculation completed successfully.'))
         # except Exception as e:
