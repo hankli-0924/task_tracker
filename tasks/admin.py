@@ -233,7 +233,6 @@ class AllCompletionWorkAdmin(admin.ModelAdmin):
     list_display = ('task_type', 'issue_description', 'owner', 'complete_time','completion_month', 'days_spent')
     search_fields = ('task_type', 'issue_description', 'owner')
     list_filter = ('task_type', 'owner', CompleteTimeLastMonthFilter)
-    date_hierarchy = 'completion_month'
     ordering = ('-complete_time',)
 
 
