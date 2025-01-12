@@ -1,6 +1,7 @@
 import logging
 
 from django.core.management import BaseCommand
+from django.db.models import Q
 
 from tasks.models import Assignment
 from tasks.services.scheduling_service import ScheduleService
@@ -17,9 +18,9 @@ class Command(BaseCommand):
         # try:
             # Get all assignments and determine the dependency order of team members
         assignments = Assignment.objects.select_related('task', 'team_member').filter(
-            actual_start_time__isnull=True,
-            actual_end_time__isnull=True,
-            need_update=True)
+            Q(actual_start_time__isnull=True, actual_end_time__isnull=True) |
+            Q(need_update=True)
+        )
         ordered_members = ScheduleService.get_team_member_dependency_order(assignments)
 
         # Reschedule each team member in dependency order
