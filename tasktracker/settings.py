@@ -181,3 +181,5 @@ LOGGING = {
 
 # 确保日志目录存在
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+
+ALLOWED_HOSTS = ['*']
