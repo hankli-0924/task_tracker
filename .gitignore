@@ -4,3 +4,5 @@ logs/
 .venv
 .ipynb_checkpoints/
 Local.ipynb
+err.log
+*csv_*.csv
