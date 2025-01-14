@@ -8,8 +8,8 @@ from .models import TeamMember, Task, Assignment, TaskPredecessor, Holiday, Work
 
 # 更改站点标题和头部标题
 admin.site.site_title = 'veriii'
-admin.site.site_header = 'Project Tracker'
-admin.site.index_title = 'Welcome to Project Tracker'
+admin.site.site_header = 'Task Tracker'
+admin.site.index_title = 'Welcome to Task Tracker'
 
 class LastMonthFilter(admin.SimpleListFilter):
     title = 'planed end time'
