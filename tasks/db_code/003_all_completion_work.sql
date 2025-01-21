@@ -1,7 +1,7 @@
 drop view if exists all_completion_work CASCADE;
 create view all_completion_work as
 select 'issues'                                                    as task_type,
-       issue_description,
+       issue_description as description,
        case owner when '牧野' then '李治文' else owner end         as owner,
        veriii_defects.complete_time,
        to_char(veriii_defects.complete_time,'YYYY-MM')          as completion_month,
