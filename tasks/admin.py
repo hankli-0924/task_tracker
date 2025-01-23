@@ -239,7 +239,7 @@ class CompleteTimeLastMonthFilter(admin.SimpleListFilter):
 @admin.register(AllCompletionWork)
 class AllCompletionWorkAdmin(admin.ModelAdmin):
     list_display = ('task_type', 'description', 'owner', 'complete_time','completion_month', 'days_spent')
-    search_fields = ('task_type', 'issue_description', 'owner')
+    search_fields = ('task_type', 'description', 'owner')
     list_filter = ('task_type', 'owner', CompleteTimeLastMonthFilter)
     ordering = ('-complete_time',)
 
