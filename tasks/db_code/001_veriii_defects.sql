@@ -1,6 +1,7 @@
 drop view if exists veriii_defects CASCADE;
 create view veriii_defects as
-select content                                                                  as issue_description,
+select  id,
+    content                                                                  as issue_description,
        "Executor"                                                               as owner,
 --        "Update Time",
 --        "Start Date",
