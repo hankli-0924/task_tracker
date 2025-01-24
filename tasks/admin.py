@@ -243,6 +243,14 @@ class AllCompletionWorkAdmin(admin.ModelAdmin):
     list_filter = ('task_type', 'owner', CompleteTimeLastMonthFilter)
     ordering = ('-complete_time',)
 
+    def has_delete_permission(self, request, obj=None):
+        # Disable delete permissions
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        # Disable delete permissions
+        return False
+
 
 # Register the models with their respective admin classes
 admin.site.register(TeamMember, TeamMemberAdmin)
