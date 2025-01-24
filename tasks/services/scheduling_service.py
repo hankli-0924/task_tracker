@@ -1,6 +1,4 @@
 import logging
-
-from django.db.models import Q
 from django.db.models.aggregates import Max
 from django.utils import timezone
 from collections import deque, defaultdict
