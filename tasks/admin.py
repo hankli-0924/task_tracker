@@ -142,7 +142,7 @@ class VeriiiDefectsAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_time'  # Optional: adds date-based drill-down navigation
     ordering = ('priority_no', 'creation_time',)  # Sorts records when they appear in the admin
 
-
+#
 @admin.register(VeriiiTaskAssignments)
 class VeriiiTasksAdmin(admin.ModelAdmin):
     # 自定义管理界面显示哪些字段

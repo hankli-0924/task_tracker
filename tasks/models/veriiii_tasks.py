@@ -16,4 +16,4 @@ class VeriiiTaskAssignments(models.Model):
 
     class Meta:
         managed = False
-        db_table = ('veriii_task_assignments',)
+        db_table = 'veriii_task_assignments'
