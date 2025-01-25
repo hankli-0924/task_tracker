@@ -1,5 +1,5 @@
 from django.db import models
-class VeriiiTasks(models.Model):
+class VeriiiTaskAssignments(models.Model):
     # id = models.BigIntegerField(blank=True, null=True)
     task_name = models.CharField(max_length=255, blank=True, null=True)
     priority = models.TextField(blank=True, null=True)
@@ -16,4 +16,4 @@ class VeriiiTasks(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'veriii_tasks'
+        db_table = ('veriii_task_assignments',)

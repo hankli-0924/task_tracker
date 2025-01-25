@@ -1,5 +1,6 @@
 drop view if exists veriii_tasks CASCADE;
-create view veriii_tasks as
+drop view if exists veriii_task_assignments CASCADE;
+create view veriii_task_assignments as
 select tasks_assignment.id,
        tasks_task.task_name                as task_name,
        'P' || tasks_task.priority          as priority,

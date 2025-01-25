@@ -14,8 +14,8 @@ union all
 select 'task'||id::text, 'tasks',
        task_name,
        username,
-       veriii_tasks.actual_end_time,
-       to_char(veriii_tasks.actual_end_time,'YYYY-MM') as completion_month,
-       veriii_tasks.effort_estimation_in_man_days
-from veriii_tasks
+       veriii_task_assignments.actual_end_time,
+       to_char(veriii_task_assignments.actual_end_time,'YYYY-MM') as completion_month,
+       veriii_task_assignments.effort_estimation_in_man_days
+from veriii_task_assignments
 where actual_end_time is not null;

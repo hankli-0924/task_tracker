@@ -2,7 +2,7 @@ from django.contrib import admin
 from simple_history.admin import SimpleHistoryAdmin
 from django.utils import timezone
 from datetime import timedelta, date
-from .models import TeamMember, Task, Assignment, TaskPredecessor, Holiday, WorkCalendar, VeriiiDefects, VeriiiTasks, \
+from .models import TeamMember, Task, Assignment, TaskPredecessor, Holiday, WorkCalendar, VeriiiDefects, VeriiiTaskAssignments, \
     AllCompletionWork
 
 
@@ -143,7 +143,7 @@ class VeriiiDefectsAdmin(admin.ModelAdmin):
     ordering = ('priority_no', 'creation_time',)  # Sorts records when they appear in the admin
 
 
-@admin.register(VeriiiTasks)
+@admin.register(VeriiiTaskAssignments)
 class VeriiiTasksAdmin(admin.ModelAdmin):
     # 自定义管理界面显示哪些字段
     list_display = (

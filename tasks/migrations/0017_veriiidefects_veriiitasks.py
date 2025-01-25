@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='VeriiiTasks',
+            name='VeriiiTaskAssignments',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('task_name', models.CharField(blank=True, max_length=255, null=True)),
