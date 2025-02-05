@@ -66,7 +66,7 @@ class ScheduleService:
         assignment.planned_start_time = start_date
         assignment.planned_end_time = end_date
         assignment.need_update = False
-        assignment.save()
+        assignment.save(update_fields=['planned_start_time', 'planned_end_time', 'need_update'])
         logger.info(
             f'Recalculated schedule for assignment {assignment}, estimation is {assignment.effort_estimation} new start_date is {start_date}, new end_date is {end_date}')
 
@@ -77,6 +77,7 @@ class ScheduleService:
                                   task__level=1,
                                   actual_start_time__isnull=True,
                                   actual_end_time__isnull=True).update(need_update=True)
+
         assignments = Assignment.objects.filter(
             team_member=team_member,
             task__level=1,
