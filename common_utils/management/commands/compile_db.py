@@ -30,6 +30,8 @@ class Command(BaseCommand):
                 for file_name in sorted(os.listdir(sql_dir)):
                     if file_name.endswith('.sql'):
                         file_path = os.path.join(sql_dir, file_name)
+                        self.stdout.write(self.style.SUCCESS(f'{file_path} execution starts.'))
+
                         with open(file_path, 'r') as f:
                             sql_content = f.read()
 
