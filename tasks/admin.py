@@ -2,14 +2,15 @@ from django.contrib import admin
 from simple_history.admin import SimpleHistoryAdmin
 from django.utils import timezone
 from datetime import timedelta, date
-from .models import TeamMember, Task, Assignment, TaskPredecessor, Holiday, WorkCalendar, VeriiiDefects, VeriiiTaskAssignments, \
+from .models import TeamMember, Task, Assignment, TaskPredecessor, Holiday, WorkCalendar, VeriiiDefects, \
+    VeriiiTaskAssignments, \
     AllCompletionWork
-
 
 # 更改站点标题和头部标题
 admin.site.site_title = 'veriii'
 admin.site.site_header = 'Task Tracker'
 admin.site.index_title = 'Welcome to Task Tracker'
+
 
 class LastMonthFilter(admin.SimpleListFilter):
     title = 'planed end time'
@@ -111,8 +112,8 @@ class AssignmentAdmin(SimpleHistoryAdmin):
         'actual_end_time', 'notes', 'assigned_at')
     search_fields = ('task__task_name', 'team_member__user__username')
     list_filter = (
-    'actual_start_time','team_member', 'planned_end_time',  'task__level', 'task__priority',
-    'need_update','actual_end_time',
+        'actual_end_time', 'actual_start_time', 'team_member', 'planned_end_time', 'task__level', 'task__priority',
+        'need_update',
     )
     date_hierarchy = 'assigned_at'
 
@@ -135,12 +136,14 @@ class WorkCalendarAdmin(SimpleHistoryAdmin):
 @admin.register(VeriiiDefects)
 class VeriiiDefectsAdmin(admin.ModelAdmin):
     list_display = (
-        'issue_description', 'owner', 'type', 'sys_name', 'module_name', 'priority','priority_no', 'workflow_status',
+        'issue_description', 'owner', 'type', 'sys_name', 'module_name', 'priority', 'priority_no', 'workflow_status',
         'creation_time', 'days_since_creation')
-    list_filter = ('owner', 'workflow_status','type','sys_name','module_name', 'priority', 'creation_time')  # Add fields you want to filter by
+    list_filter = ('owner', 'workflow_status', 'type', 'sys_name', 'module_name', 'priority',
+                   'creation_time')  # Add fields you want to filter by
     search_fields = ('issue_description', 'owner', 'sys_name', 'module_name')  # Add fields you want to be searchable
     date_hierarchy = 'creation_time'  # Optional: adds date-based drill-down navigation
     ordering = ('priority_no', 'creation_time',)  # Sorts records when they appear in the admin
+
 
 #
 @admin.register(VeriiiTaskAssignments)
@@ -176,7 +179,6 @@ class VeriiiTasksAdmin(admin.ModelAdmin):
 
     # 添加 date_hierarchy 支持
     # date_hierarchy = 'planed_end_time'
-
 
 
 class CompleteTimeLastMonthFilter(admin.SimpleListFilter):
@@ -238,7 +240,7 @@ class CompleteTimeLastMonthFilter(admin.SimpleListFilter):
 
 @admin.register(AllCompletionWork)
 class AllCompletionWorkAdmin(admin.ModelAdmin):
-    list_display = ('task_type', 'description', 'owner', 'complete_time','completion_month', 'days_spent')
+    list_display = ('task_type', 'description', 'owner', 'complete_time', 'completion_month', 'days_spent')
     search_fields = ('task_type', 'description', 'owner')
     list_filter = ('task_type', 'owner', CompleteTimeLastMonthFilter)
     ordering = ('-complete_time',)
