@@ -128,6 +128,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -143,7 +145,7 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'INFO',  # 控制台只显示INFO及以上级别的日志
+            'level': 'DEBUG',  # 控制台只显示INFO及以上级别的日志
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
@@ -176,7 +178,15 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'DEBUG',  # Set to DEBUG to see SQL queries
+            'propagate': False,
+        },
     },
+
+
+
 }
 
 # 确保日志目录存在
