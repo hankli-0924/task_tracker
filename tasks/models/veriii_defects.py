@@ -1,6 +1,7 @@
 from django.db import models
 class VeriiiDefects(models.Model):
-    issue_description = models.TextField(primary_key=True )
+    id = models.TextField(primary_key=True)
+    issue_description = models.TextField()
     owner = models.TextField(blank=True, null=True)
     type = models.TextField(blank=True, null=True)
     sys_name = models.TextField(blank=True, null=True)

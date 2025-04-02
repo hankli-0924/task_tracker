@@ -135,7 +135,7 @@ class WorkCalendarAdmin(SimpleHistoryAdmin):
 
 @admin.register(VeriiiDefects)
 class VeriiiDefectsAdmin(admin.ModelAdmin):
-    list_display = (
+    list_display = ('id',
         'issue_description', 'owner', 'type', 'sys_name', 'module_name', 'priority', 'priority_no', 'workflow_status',
         'creation_time', 'days_since_creation')
     list_filter = ('owner', 'workflow_status', 'type', 'sys_name', 'module_name', 'priority',
