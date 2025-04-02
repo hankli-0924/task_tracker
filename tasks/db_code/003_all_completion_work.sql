@@ -22,7 +22,7 @@ select 'task' || veriii_task_assignments.id::text,
 
 --        veriii_task_assignments.effort_estimation_in_man_days
        veriii_task_assignments.actual_end_time::date + 1 - veriii_task_assignments.actual_start_time::date as days_spent,
-       tasks_task.description
+       veriii_task_assignments.notes
 from veriii_task_assignments
 join tasks_task on veriii_task_assignments.task_id=tasks_task.id
 where actual_end_time is not null;

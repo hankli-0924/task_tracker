@@ -13,7 +13,8 @@ select tasks_assignment.id,
        tasks_assignment.effort_estimation     effort_estimation_in_man_days,
        tasks_assignment.actual_start_time  as actual_start_time,
        tasks_assignment.actual_end_time    as actual_end_time,
-       tasks_assignment.task_id
+       tasks_assignment.task_id,
+       tasks_assignment.notes
 from tasks_assignment
          join tasks_teammember tt on tasks_assignment.team_member_id = tt.id
          join auth_user au on tt.user_id = au.id
